@@ -16,16 +16,15 @@ function draw() {
   }
 }
 
-// Boid class
-// Methods for Separation, Cohesion, Alignment added
+
 class Boid {
   constructor(x, y) {
     this.acceleration = createVector(0, 0);
     this.velocity = p5.Vector.random2D();
     this.position = createVector(x, y);
     this.r = 3.0;
-    this.maxspeed = 5;    // Maximum speed
-    this.maxforce = 0.05; // Maximum steering force
+    this.maxspeed = 5;
+    this.maxforce = 0.05;
   }
 
   run(boids) {
@@ -35,52 +34,43 @@ class Boid {
     this.render();
   }
   
-  // Forces go into acceleration
+
   applyForce(force) {
     this.acceleration.add(force);
   }
-  
-  // We accumulate a new acceleration each time based on three rules
+
   flock(boids) {
-    let sep = this.separate(boids); // Separation
-    let ali = this.align(boids);    // Alignment
-    let coh = this.cohesion(boids); // Cohesion
-    // Arbitrarily weight these forces
+    let sep = this.separate(boids); 
+    let ali = this.align(boids);    
+    let coh = this.cohesion(boids); 
     sep.mult(5.0);
     ali.mult(3.0);
     coh.mult(1.0);
-    // Add the force vectors to acceleration
     this.applyForce(sep);
     this.applyForce(ali);
     this.applyForce(coh);
   }
-  
-  // Method to update location
+
   update() {
-    // Update velocity
     this.velocity.add(this.acceleration);
     // Limit speed
     this.velocity.limit(this.maxspeed);
     this.position.add(this.velocity);
-    // Reset acceleration to 0 each cycle
     this.acceleration.mult(0);
   }
   
-  // A method that calculates and applies a steering force towards a target
-  // STEER = DESIRED MINUS VELOCITY
+
   seek(target) {
-    let desired = p5.Vector.sub(target, this.position); // A vector pointing from the location to the target
-    // Normalize desired and scale to maximum speed
+    let desired = p5.Vector.sub(target, this.position); 
     desired.normalize();
     desired.mult(this.maxspeed);
-    // Steering = Desired minus Velocity
     let steer = p5.Vector.sub(desired, this.velocity);
-    steer.limit(this.maxforce); // Limit to maximum steering force
+    steer.limit(this.maxforce);
     return steer;
   }
   
   render() {
-    fill(127, 127);
+    fill(127, 127, 127);
     stroke(200);
     console.log(this.velocity);
     let [a,b] = [this.velocity.x, this.velocity.y];
@@ -109,45 +99,38 @@ class Boid {
     
     let xs2 = xf - b*wings;
     let ys2 = yf + a*wings;
-    
+    stroke(127, 127, 127);
     triangle(xs1, ys1, xs2, ys2,xs, ys);
   }
-  
-  // Wraparound
+
   borders() {
     if (this.position.x < -this.r) this.position.x = width + this.r;
     if (this.position.y < -this.r) this.position.y = height + this.r;
     if (this.position.x > width + this.r) this.position.x = -this.r;
     if (this.position.y > height + this.r) this.position.y = -this.r;
   }
-  
-  // Separation
-  // Method checks for nearby boids and steers away
+
   separate(boids) {
     let desiredseparation = 25.0;
     let steer = createVector(0, 0);
     let count = 0;
-    // For every boid in the system, check if it's too close
     for (let i = 0; i < boids.length; i++) {
       let d = p5.Vector.dist(this.position, boids[i].position);
-      // If the distance is greater than 0 and less than an arbitrary amount (0 when you are yourself)
+      
       if ((d > 0) && (d < desiredseparation)) {
-        // Calculate vector pointing away from neighbor
         let diff = p5.Vector.sub(this.position, boids[i].position);
         diff.normalize();
-        diff.div(d); // Weight by distance
+        diff.div(d); 
         steer.add(diff);
-        count++; // Keep track of how many
+        count++; 
       }
     }
-    // Average -- divide by how many
+
     if (count > 0) {
       steer.div(count);
     }
-  
-    // As long as the vector is greater than 0
+
     if (steer.mag() > 0) {
-      // Implement Reynolds: Steering = Desired - Velocity
       steer.normalize();
       steer.mult(this.maxspeed);
       steer.sub(this.velocity);
@@ -156,8 +139,6 @@ class Boid {
     return steer;
   }
   
-  // Alignment
-  // For every nearby boid in the system, calculate the average velocity
   align(boids) {
     let neighbordist = 50;
     let sum = createVector(0, 0);
@@ -181,22 +162,20 @@ class Boid {
     }
   }
   
-  // Cohesion
-  // For the average location (i.e. center) of all nearby boids, calculate steering vector towards that location
   cohesion(boids) {
     let neighbordist = 50;
-    let sum = createVector(0, 0); // Start with empty vector to accumulate all locations
+    let sum = createVector(0, 0); 
     let count = 0;
     for (let i = 0; i < boids.length; i++) {
       let d = p5.Vector.dist(this.position, boids[i].position);
       if ((d > 0) && (d < neighbordist)) {
-        sum.add(boids[i].position); // Add location
+        sum.add(boids[i].position);
         count++;
       }
     }
     if (count > 0) {
       sum.div(count);
-      return this.seek(sum); // Steer towards the location
+      return this.seek(sum); 
     } else {
       return createVector(0, 0);
     }
