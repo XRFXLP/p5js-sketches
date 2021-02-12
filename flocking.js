@@ -1,8 +1,9 @@
+
 let boids = [];
 
 function setup() {
   createCanvas(1350, 760);
-  for (let i = 0; i < 250; i++) {
+  for (let i = 0; i < 200; i++) {
     boids[i] = new Boid(random(width), random(height));
   }
 }
@@ -26,6 +27,10 @@ class Boid {
     this.maxspeed = 5;
     this.maxforce = 0.05;
   }
+  
+  scaleF(){
+    return 0.007*this.distanceFromCenter();
+  }
 
   run(boids) {
     this.flock(boids);
@@ -39,6 +44,10 @@ class Boid {
     this.acceleration.add(force);
   }
 
+  distanceFromCenter(){
+     return Math.pow(Math.pow(this.position.x - 1350/2, 2) + Math.pow(this.position.y - 760/2, 2), 0.5);
+  }
+  
   flock(boids) {
     let sep = this.separate(boids); 
     let ali = this.align(boids);    
@@ -50,10 +59,17 @@ class Boid {
     this.applyForce(ali);
     this.applyForce(coh);
   }
+  
+  sine(){
+    let D = this.distanceFromCenter();
+    let radius = 1000; //Apparent depth of the spherical world
+    return 1/Math.sqrt(1 - Math.pow(D/radius, 2));
+  }
 
   update() {
     this.velocity.add(this.acceleration);
-    // Limit speed
+
+    this.velocity.mult(this.sine());
     this.velocity.limit(this.maxspeed);
     this.position.add(this.velocity);
     this.acceleration.mult(0);
@@ -81,7 +97,7 @@ class Boid {
     let smaller = 5;
     let larger = 15;
     
-    let distance_from_o = 0.002 * Math.pow(Math.pow(this.position.x - 1350/2, 2) + Math.pow(this.position.y - 760/2, 2), 0.5);
+    let distance_from_o = 0.002 * this.distanceFromCenter();
     distance_from_o *= distance_from_o;
     smaller *= distance_from_o;
     larger *= distance_from_o;
@@ -111,11 +127,11 @@ class Boid {
   }
 
   separate(boids) {
-    let desiredseparation = 25.0;
+    let desiredseparation = 40.0 * this.sine();
     let steer = createVector(0, 0);
     let count = 0;
     for (let i = 0; i < boids.length; i++) {
-      let d = p5.Vector.dist(this.position, boids[i].position);
+      let d = this.sine() * (p5.Vector.dist(this.position, boids[i].position));
       
       if ((d > 0) && (d < desiredseparation)) {
         let diff = p5.Vector.sub(this.position, boids[i].position);
@@ -140,11 +156,11 @@ class Boid {
   }
   
   align(boids) {
-    let neighbordist = 50;
+    let neighbordist = 50 * (this.sine());
     let sum = createVector(0, 0);
     let count = 0;
     for (let i = 0; i < boids.length; i++) {
-      let d = p5.Vector.dist(this.position, boids[i].position);
+      let d = this.sine() * (p5.Vector.dist(this.position, boids[i].position));
       if ((d > 0) && (d < neighbordist)) {
         sum.add(boids[i].velocity);
         count++;
@@ -163,11 +179,11 @@ class Boid {
   }
   
   cohesion(boids) {
-    let neighbordist = 50;
+    let neighbordist = 50 * this.sine();
     let sum = createVector(0, 0); 
     let count = 0;
     for (let i = 0; i < boids.length; i++) {
-      let d = p5.Vector.dist(this.position, boids[i].position);
+      let d = this.sine() * (p5.Vector.dist(this.position, boids[i].position));
       if ((d > 0) && (d < neighbordist)) {
         sum.add(boids[i].position);
         count++;
