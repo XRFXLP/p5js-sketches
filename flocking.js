@@ -1,10 +1,7 @@
-//This code is fork from the example given in p5js
 let boids = [];
 
 function setup() {
   createCanvas(1350, 760);
-
-  // Add an initial set of boids into the system
   for (let i = 0; i < 250; i++) {
     boids[i] = new Boid(random(width), random(height));
   }
@@ -14,7 +11,6 @@ function setup() {
 
 function draw() {
   background(5, 2, 58);
-  // Run all the boids
   for (let i = 0; i < boids.length; i++) {
     boids[i].run(boids);
   }
@@ -83,7 +79,6 @@ class Boid {
     return steer;
   }
   
-  // Draw boid as a circle
   render() {
     fill(127, 127);
     stroke(200);
@@ -93,17 +88,27 @@ class Boid {
     a /= mg;
     b /= mg;
     
-    let xf = this.position.x - a*5;
-    let yf = this.position.y - b*5;
+    let smaller = 5;
+    let larger = 15;
     
-    let xs = this.position.x + a*15;
-    let ys = this.position.y + b*15;
+    let distance_from_o = 0.002 * Math.pow(Math.pow(this.position.x - 1350/2, 2) + Math.pow(this.position.y - 760/2, 2), 0.5);
+    distance_from_o *= distance_from_o;
+    smaller *= distance_from_o;
+    larger *= distance_from_o;
     
-    let xs1 = xf + b*7;
-    let ys1 = yf - a*7;
+    let xf = this.position.x - a*smaller;
+    let yf = this.position.y - b*smaller;
     
-    let xs2 = xf - b*7;
-    let ys2 = yf + a*7;
+    let xs = this.position.x + a*larger;
+    let ys = this.position.y + b*larger;
+    
+    let wings = 7;
+    wings *= distance_from_o;
+    let xs1 = xf + b*wings;
+    let ys1 = yf - a*wings;
+    
+    let xs2 = xf - b*wings;
+    let ys2 = yf + a*wings;
     
     triangle(xs1, ys1, xs2, ys2,xs, ys);
   }
