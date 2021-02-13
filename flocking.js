@@ -3,7 +3,7 @@ let boids = [];
 
 function setup() {
   createCanvas(1350, 760);
-  for (let i = 0; i < 200; i++) {
+  for (let i = 0; i < 250; i++) {
     boids[i] = new Boid(random(width), random(height));
   }
 }
@@ -62,7 +62,7 @@ class Boid {
   
   sine(){
     let D = this.distanceFromCenter();
-    let radius = 1000; //Apparent depth of the spherical world
+    let radius = 4000; //Apparent depth of the spherical world
     return 1/Math.sqrt(1 - Math.pow(D/radius, 2));
   }
 
@@ -116,7 +116,8 @@ class Boid {
     let xs2 = xf - b*wings;
     let ys2 = yf + a*wings;
     stroke(127, 127, 127);
-    triangle(xs1, ys1, xs2, ys2,xs, ys);
+    line(xs1, ys1, xs2, ys2);
+    line(xf, yf, xs, ys);
   }
 
   borders() {
